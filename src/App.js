@@ -1,86 +1,112 @@
-import { useState } from 'react'
-import './App.css'
+import { useState, useEffect } from 'react';
+import './App.css';
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
-import { MainContainer, ChatContainer, MessageList, Message, MessageInput, TypingIndicator } from '@chatscope/chat-ui-kit-react';
+import {
+  MainContainer,
+  ChatContainer,
+  MessageList,
+  Message,
+  MessageInput,
+  TypingIndicator,
+} from '@chatscope/chat-ui-kit-react';
 
-const API_KEY = "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";
-// "Explain things like you would to a 10 year old learning how to code."
-const systemMessage = { //  Explain things like you're talking to a software professional with 5 years of experience.
-  "role": "system", "content": "Explain things like you're talking to a software professional with 2 years of experience."
-}
+const API_KEY = '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';
+
+const systemMessage = {
+  role: 'system',
+  content:
+    "Explain things like you're talking to a software professional with 2 years of experience.",
+};
 
 function App() {
   const [messages, setMessages] = useState([
     {
-      message: "Hello, I'm ChatGPT! Ask me anything!",
-      sentTime: "just now",
-      sender: "ChatGPT"
-    }
+      message: 'Hello, Welcome to your virtual school assistant!',
+      sentTime: 'just now',
+      sender: 'ChatGPT',
+    },
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+
+  useEffect(() => {
+    // Fetch courses after successful login
+    if (isLoggedIn) {
+      fetchCourses();
+    }
+  }, [isLoggedIn]);
+
+  async function fetchCourses() {
+    // Fetch courses here using the Canvas API
+    // This function should be implemented in the CanvasAPI.js file
+    // and imported to use here.
+  }
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    // Implement UCF SSO authentication and obtain an access token
+    // Then set `isLoggedIn` to true.
+  };
+
+  const handleCourseSelection = (course) => {
+    setSelectedCourse(course);
+  };
 
   const handleSend = async (message) => {
     const newMessage = {
       message,
       direction: 'outgoing',
       sender: "user"
-    };
-
-    const newMessages = [...messages, newMessage];
-    
-    setMessages(newMessages);
-
-    // Initial system message to determine ChatGPT functionality
-    // How it responds, how it talks, etc.
-    setIsTyping(true);
-    await processMessageToChatGPT(newMessages);
+    }
   };
 
-  async function processMessageToChatGPT(chatMessages) { // messages is an array of messages
-    // Format messages for chatGPT API
-    // API is expecting objects in format of { role: "user" or "assistant", "content": "message here"}
-    // So we need to reformat
+  // ... existing functions ...
 
-    let apiMessages = chatMessages.map((messageObject) => {
-      let role = "";
-      if (messageObject.sender === "ChatGPT") {
-        role = "assistant";
-      } else {
-        role = "user";
-      }
-      return { role: role, content: messageObject.message}
-    });
+  if (!isLoggedIn) {
+    return (
+      <div className="App">
+        <form onSubmit={handleLogin}>
+          <label>
+            Canvas Username:
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </label>
+          <br />
+          <label>
+            Canvas Password:
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+          <br />
+          <input type="submit" value="Log in" />
+        </form>
+      </div>
+    );
+  }
 
-
-    // Get the request body set up with the model we plan to use
-    // and the messages which we formatted above. We add a system message in the front to'
-    // determine how we want chatGPT to act. 
-    const apiRequestBody = {
-      "model": "gpt-3.5-turbo",
-      "messages": [
-        systemMessage,  // The system message DEFINES the logic of our chatGPT
-        ...apiMessages // The messages from our chat with ChatGPT
-      ]
-    }
-
-    await fetch("https://api.openai.com/v1/chat/completions", 
-    {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + API_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(apiRequestBody)
-    }).then((data) => {
-      return data.json();
-    }).then((data) => {
-      console.log(data);
-      setMessages([...chatMessages, {
-        message: data.choices[0].message.content,
-        sender: "ChatGPT"
-      }]);
-      setIsTyping(false);
-    });
+  if (!selectedCourse) {
+    return (
+      <div className="App">
+        <h1>Select a course to discuss</h1>
+        <ul>
+          {courses.map((course) => (
+            <li key={course.id} onClick={() => handleCourseSelection(course)}>
+              {course.name}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
   }
 
   return (
@@ -102,7 +128,7 @@ function App() {
         </MainContainer>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
